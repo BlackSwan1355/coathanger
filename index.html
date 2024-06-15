@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spread em wide!</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        .background-noise {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .full-width-photo {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas class="background-noise"></canvas>
+    <img id="mainImage" src="1500x500.jpg" alt="Full Width Photo" class="full-width-photo">
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const img = document.getElementById('mainImage');
+            img.onload = function () {
+                const canvas = document.querySelector('.background-noise');
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const imageCanvas = document.createElement('canvas');
+                const imageCtx = imageCanvas.getContext('2d');
+                imageCanvas.width = img.width;
+                imageCanvas.height = img.height;
+                imageCtx.drawImage(img, 0, 0, img.width, img.height);
+
+                const imageData = imageCtx.getImageData(0, 0, img.width, img.height);
+                const data = imageData.data;
+                let r = 0, g = 0, b = 0;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                }
+
+                r = Math.floor(r / (data.length / 4));
+                g = Math.floor(g / (data.length / 4));
+                b = Math.floor(b / (data.length / 4));
+
+                const averageColor = `rgb(${r}, ${g}, ${b})`;
+                ctx.fillStyle = averageColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const imageDataNoise = ctx.createImageData(canvas.width, canvas.height);
+                for (let i = 0; i < imageDataNoise.data.length; i += 4) {
+                    const noise = Math.floor(Math.random() * 256);
+                    imageDataNoise.data[i] = r + noise / 4;
+                    imageDataNoise.data[i + 1] = g + noise / 4;
+                    imageDataNoise.data[i + 2] = b + noise / 4;
+                    imageDataNoise.data[i + 3] = 255;
+                }
+
+                ctx.putImageData(imageDataNoise, 0, 0);
+            };
+        });
+    </script>
+</body>
+</html>
+
